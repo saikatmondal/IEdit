@@ -135,11 +135,11 @@ public class IEditMain {
 				}
 				if(signatureInconsistency.get(0) == 1) {
 					if(signatureInconsistency.get(1) == 1) {
-						suggestion += "\nSignature Inconsistency: Your suggested edit has a signature (e.g.,"+userFirstName+" "+userLastName+")."
+						suggestion += "\nSignature Inconsistency: Your suggested edit has a signature (e.g., user name)."
 								+ "\nHowever, the addition of such signature has x% of rejection possibility.";
 						inconsistencyCount++;
 					}else {
-						suggestion += "\nSignature Inconsistency: Your suggested edit has deleted a signature (e.g.,"+userFirstName+" "+userLastName+")."
+						suggestion += "\nSignature Inconsistency: Your suggested edit has deleted a signature (e.g., user name)."
 								+ "\nHowever, the deletion of such signature has x% of rejection possibility.\n";
 						inconsistencyCount++;
 					}
@@ -182,7 +182,7 @@ public class IEditMain {
 				System.out.println(suggestion);
 			
 			}else {
-				suggestion = "Go ahead! There is no inconsistency in you suggested edits.";
+				suggestion = "Go ahead! There is no inconsistency in your suggested edits.";
 				System.out.println(suggestion);
 			}
 
