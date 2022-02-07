@@ -18,9 +18,6 @@ public class IEditMain {
 			
 			
 			Parser parser = Parser.builder().build();
-				
-			String rollbackUserName = "";
-			String rejectedEditUserName = "";
 			
 			Document preEditDoc = null;
 			Document postEditDoc = null;
@@ -178,6 +175,8 @@ public class IEditMain {
 						inconsistencyCount++;
 					}
 				}
+				
+				suggestion += "\n\nWe hope the suggestion(s) help you to avoid inconsistent edits and rejections. Good Luck!";
 				
 				System.out.println(suggestion);
 			
