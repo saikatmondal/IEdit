@@ -1,0 +1,1 @@
+### Automatic Assistance to Mitigate Inconsistencies in Stack Overflow Rollback Edits
