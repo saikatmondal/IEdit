@@ -50,7 +50,6 @@ public class IEditMain {
 				HtmlRenderer renderer = HtmlRenderer.builder().build();
 				renderer.render(preTextDocument);  // "<p>This is <em>Sparta</em></p>\n"
 				preEditDoc = Jsoup.parse(renderer.render(preTextDocument));
-//				System.out.println(preEditDoc);
 				
     			preText = preEditDoc.select("p");	    			
 				preEditText = preText.text().toString();
