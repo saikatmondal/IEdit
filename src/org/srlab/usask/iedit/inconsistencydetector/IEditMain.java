@@ -43,7 +43,7 @@ public class IEditMain {
 			
 			
 			try {
-				preEditDoc = Jsoup.parse("<p>I <code>am</code> a test text.</p>");
+				preEditDoc = Jsoup.parse("<p>I <code>am</code> a test text. Thank you.</p>");
 				
 				//Parse markup to HTML
 				preTextDocument = parser.parse(preEditDoc.toString());
@@ -60,7 +60,7 @@ public class IEditMain {
 			}
 			
 			try {
-				postEditDoc = Jsoup.parse("<p>I a postedit <code>text</code>. Mondal</p>");
+				postEditDoc = Jsoup.parse("<p>I a postedit <code>text</code>.</p>");
 				
 				//Parse markup to HTML 
 				postTextDocument = parser.parse(postEditDoc.toString());
