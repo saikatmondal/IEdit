@@ -9,9 +9,7 @@ import java.io.OutputStream;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 // JSON + Markdown + HTML
 import com.google.gson.Gson;
@@ -33,10 +31,11 @@ public class IEditPluginMain {
         String rollbackUserName; // full name "First Last"
     }
 
+    // OutputPayload kept here only if you need it later; not used now
     static class OutputPayload {
-        String status; // "accepted" | "rejected"
-        String reason; // suggestion text
-        double score;  // simple normalized score (0..1), here: 1 - (flags/6)
+        String status; 
+        String reason;
+        double score;
         OutputPayload(String status, String reason, double score) {
             this.status = status;
             this.reason = reason;
@@ -85,13 +84,19 @@ public class IEditPluginMain {
                 sendJson(exchange, 400, "{\"error\":\"Invalid JSON\"}");
                 return;
             }
+            
+         // --- Debug print for server console ---
+            System.out.println("==== Received Edit Data ====");
+            System.out.println("PreText:\n" + input.preText);
+            System.out.println("\nPostText:\n" + input.postText);
+            System.out.println("============================\n");
 
             // Defensive null/empty handling
             String preMd = safe(input.preText);
             String postMd = safe(input.postText);
             String userName = safe(input.rollbackUserName);
 
-            // Markdown -> HTML -> Jsoup Document & visible text (same approach as your local code)
+            // Markdown -> HTML -> Jsoup Document & visible text
             ParsedText pre = parseMarkdownToDocAndPlain(preMd);
             ParsedText post = parseMarkdownToDocAndPlain(postMd);
 
@@ -104,7 +109,7 @@ public class IEditPluginMain {
                 if (parts.length >= 2) userLastName = parts[parts.length - 1];
             }
 
-            // Run your detectors — EXACT calls preserved
+            // Run detectors (unchanged)
             List<Integer> presentationInconsistency =
                 DetectPresentationInconsistency.detectPresentationInconsistency(
                     pre.doc, post.doc, pre.text, post.text);
@@ -129,7 +134,7 @@ public class IEditPluginMain {
                 DetectDuplicationInconsistency.detectDuplicationInconsistency(
                     pre.text.toLowerCase(), post.text.toLowerCase());
 
-            // Build suggestion text consistent with your local logic
+            // Build suggestion text (unchanged)
             SuggestionResult sres = buildSuggestion(
                 presentationInconsistency,
                 gratitudeInconsistency,
@@ -139,12 +144,9 @@ public class IEditPluginMain {
                 duplicationInconsistency
             );
 
-            // status + score (simple: 1 - (flags/6))
-            String status = sres.inconsistencyCount == 0 ? "accepted" : "rejected";
-            double score = Math.max(0.0, Math.min(1.0, 1.0 - (sres.inconsistencyCount / 6.0)));
-
-            OutputPayload out = new OutputPayload(status, sres.suggestion, score);
-            sendJson(exchange, 200, GSON.toJson(out));
+            // Return ONLY the message as a JSON string
+            String message = sres.suggestion;
+            sendJson(exchange, 200, GSON.toJson(message));
         }
     }
 
@@ -165,7 +167,6 @@ public class IEditPluginMain {
             String html = HTML_RENDERER.render(docNode);
             Document jsoupDoc = Jsoup.parse(html);
 
-            // Close to your local approach: gather paragraph text as plain
             Elements paragraphs = jsoupDoc.select("p, li, code, pre");
             String plain = paragraphs.isEmpty()
                 ? jsoupDoc.text()
@@ -173,7 +174,6 @@ public class IEditPluginMain {
 
             return new ParsedText(jsoupDoc, plain == null ? "" : plain);
         } catch (Exception e) {
-            // Never fail the server for parsing — degrade gracefully
             Document fallback = Jsoup.parse("<p></p>");
             return new ParsedText(fallback, "");
         }
@@ -196,7 +196,6 @@ public class IEditPluginMain {
         List<Integer> deprecationInconsistency,
         List<Integer> duplicationInconsistency
     ) {
-        // Each list: [0]=inconsistency flag, [1]=added?, [2]=deleted? (your convention)
         int count = 0;
         StringBuilder sb = new StringBuilder();
 
@@ -323,120 +322,3 @@ public class IEditPluginMain {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//package org.srlab.usask.iedit.inconsistencydetector;
-//
-//import com.sun.net.httpserver.HttpServer;
-//import com.sun.net.httpserver.HttpHandler;
-//import com.sun.net.httpserver.HttpExchange;
-//
-//import java.io.IOException;
-//import java.io.OutputStream;
-//import java.io.InputStream;
-//import java.net.InetSocketAddress;
-//import java.nio.charset.StandardCharsets;
-//
-//public class IEditPluginMain {
-//
-//    public static void main(String[] args) throws Exception {
-//        int port = 8085;
-//        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", port), 0);
-//
-//        server.createContext("/analyze", new AnalyzeHandler());
-//
-//        server.setExecutor(null); // default executor
-//        System.out.println("LocalAnalyzer running on http://127.0.0.1:" + port);
-//        server.start();
-//    }
-//
-//    static class AnalyzeHandler implements HttpHandler {
-//        @Override
-//        public void handle(HttpExchange exchange) throws IOException {
-//            // only allow POST
-//            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-//                sendJson(exchange, 405, "{\"error\":\"Method not allowed\"}");
-//                return;
-//            }
-//
-//            // read request body
-//            InputStream is = exchange.getRequestBody();
-//            String reqBody = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-//            System.out.println("Received payload: " + reqBody);
-//
-//            // TODO: parse reqBody (preText/postText/etc.) and run your ML / rule logic
-//            //
-//            // For now, we'll mock:
-//            // - if postText contains "thanks" or "pls help", warn about "chatty"
-//            // - else say it's fine
-//
-//            String status;
-//            String reason;
-//            double score;
-//
-//            if (reqBody.toLowerCase().contains("pls help")
-//                    || reqBody.toLowerCase().contains("please help")
-//                    || reqBody.toLowerCase().contains("thanks in advance")) {
-//
-//                status = "rejected";
-//                reason = "Overly chatty / non-edit content. Keep technical and focus on changes.";
-//                score  = 0.92;
-//            } else {
-//                status = "accepted";
-//                reason = "Edit looks focused and technically relevant.";
-//                score  = 0.81;
-//            }
-//
-//            // build response JSON
-//            String responseJson = String.format(
-//                "{\"status\":\"%s\",\"reason\":\"%s\",\"score\":%.2f}",
-//                escapeJson(status),
-//                escapeJson(reason),
-//                score
-//            );
-//
-//            sendJson(exchange, 200, responseJson);
-//        }
-//
-//        private static String escapeJson(String s) {
-//            return s.replace("\\", "\\\\").replace("\"", "\\\"");
-//        }
-//
-//        private static void sendJson(HttpExchange ex, int code, String body) throws IOException {
-//            // CORS headers so browser fetch() won't get blocked
-//            ex.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
-//            ex.getResponseHeaders().add("Access-Control-Allow-Origin", "https://stackoverflow.com");
-//            ex.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
-//            ex.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
-//
-//            // handle OPTIONS preflight
-//            if ("OPTIONS".equalsIgnoreCase(ex.getRequestMethod())) {
-//                ex.sendResponseHeaders(204, -1);
-//                return;
-//            }
-//
-//            byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
-//            ex.sendResponseHeaders(code, bytes.length);
-//            try (OutputStream os = ex.getResponseBody()) {
-//                os.write(bytes);
-//            }
-//        }
-//    }
-//}
