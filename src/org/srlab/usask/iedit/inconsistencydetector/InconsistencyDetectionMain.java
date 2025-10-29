@@ -26,11 +26,11 @@ public class InconsistencyDetectionMain {
 		ICsvListWriter csvWriter = null;
 		try {
 			
-			csvWriter = new CsvListWriter(new FileWriter("E:/Projects/SORejectedEdits/AUSE/Results/"),CsvPreference.STANDARD_PREFERENCE);
+			csvWriter = new CsvListWriter(new FileWriter("E:/Projects/SORejectedEdits/TOSEM/Results/ReputationInconsistentVsConsistent/user-inconsistent-rollback.csv"),CsvPreference.STANDARD_PREFERENCE);
 			//csvWriter = new CsvListWriter(new FileWriter(""),CsvPreference.STANDARD_PREFERENCE);
 			
 			//editReader = new CsvListReader(new FileReader("./testdata/testdataset.csv"),CsvPreference.STANDARD_PREFERENCE);
-			editReader = new CsvListReader(new FileReader("E:/Projects/SORejectedEdits/AUSE/Database/LargeScaleDataset/RollbackEdits/Rollback_Edits.csv"),CsvPreference.STANDARD_PREFERENCE);
+			editReader = new CsvListReader(new FileReader("E:/Projects/SORejectedEdits/TOSEM/Database/LargeScaleDataset/RollbackEdits/Rollback_Edits_For_Reputation.csv"),CsvPreference.STANDARD_PREFERENCE);
 			
 			csvWriter.write("postId",
 					        "presentation","preAcc","preRej",
@@ -38,7 +38,7 @@ public class InconsistencyDetectionMain {
 					        "signature","sigAcc","sigRej",
 					        "status", "statusAcc", "statusRej",
 					        "deprecation", "depAcc","depRej",
-					        "duplication","dupAcc","dupRej", "Structural", "Temporal");
+					        "duplication","dupAcc","dupRej", "Structural", "Temporal","userId","Rollback_DateTime");
 			
 			//csvWriter.write("postId","temporal","structural");
 			//csvWriter.write("id","reasons");
@@ -55,7 +55,9 @@ public class InconsistencyDetectionMain {
 				String postId = "";
 				String userID = "";
 				String rollbackUserName = "";
+				String rollbackUserId = "";
 				String rejectedEditUserName = "";
+				String rollbackDateTime = "";				
 				
 				Document preEditDoc = null;
 				Document postEditDoc = null;
@@ -114,21 +116,21 @@ public class InconsistencyDetectionMain {
 				}
 				
 				try {
-					revisionTo = Integer.parseInt(editList.get(4).toString().trim());
+					revisionTo = Integer.parseInt(editList.get(3).toString().trim());
 					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 				
 				try {
-					preEditDoc = Jsoup.parse(editList.get(7).toString());
+					preEditDoc = Jsoup.parse(editList.get(5).toString());
 					
 					//Parse markup to HTML
-					preTextDocument = parser.parse(preEditDoc.toString());
-					HtmlRenderer renderer = HtmlRenderer.builder().build();
-					renderer.render(preTextDocument);  // "<p>This is <em>Sparta</em></p>\n"
-					preEditDoc = Jsoup.parse(renderer.render(preTextDocument));
-//					System.out.println(preEditDoc);
+//					preTextDocument = parser.parse(preEditDoc.toString());
+//					HtmlRenderer renderer = HtmlRenderer.builder().build();
+//					renderer.render(preTextDocument);  // "<p>This is <em>Sparta</em></p>\n"
+//					preEditDoc = Jsoup.parse(renderer.render(preTextDocument));
+////					System.out.println(preEditDoc);
 					
 	    			preText = preEditDoc.select("p");	    			
 					preEditText = preText.text().toString();
@@ -141,14 +143,14 @@ public class InconsistencyDetectionMain {
 				}
 				
 				try {
-					postEditDoc = Jsoup.parse(editList.get(8).toString());
+					postEditDoc = Jsoup.parse(editList.get(6).toString());
 					
 					//Parse markup to HTML 
-					postTextDocument = parser.parse(postEditDoc.toString());
-					HtmlRenderer renderer = HtmlRenderer.builder().build();
-					renderer.render(postTextDocument);  // "<p>This is <em>Sparta</em></p>\n"
-					postEditDoc = Jsoup.parse(renderer.render(postTextDocument));
-//					System.out.println(preEditDoc);
+//					postTextDocument = parser.parse(postEditDoc.toString());
+//					HtmlRenderer renderer = HtmlRenderer.builder().build();
+//					renderer.render(postTextDocument);  // "<p>This is <em>Sparta</em></p>\n"
+//					postEditDoc = Jsoup.parse(renderer.render(postTextDocument));
+////					System.out.println(preEditDoc);
 					
 	    			postText = postEditDoc.select("p");
 					postEditText = postText.text().toString();
@@ -161,12 +163,27 @@ public class InconsistencyDetectionMain {
 				}
 				
 				try {
-					String[] userName = editList.get(10).toString().trim().split(" ");
+					rollbackUserId = editList.get(7).toString().trim();
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				try {
+					String[] userName = editList.get(8).toString().trim().split(" ");
 					rollbackUserName = userName[0];
 					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+				
+				try {
+					rollbackDateTime = editList.get(9).toString().trim();
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
 				
 //				try {
 //					userID = editList.get(13).toString().trim();
@@ -176,7 +193,7 @@ public class InconsistencyDetectionMain {
 //				}
 				
 				try {
-					String[] userName = editList.get(13).toString().trim().split(" ");
+					String[] userName = editList.get(11).toString().trim().split(" ");
 					rejectedEditUserName = userName[0];
 					
 				} catch (Exception e) {
@@ -208,7 +225,7 @@ public class InconsistencyDetectionMain {
 				}
 						
 				if((presentationInconsistency.get(0) + gratitudeInconsistency.get(0)+signatureInconsistency.get(0)
-				   +statusInconsistency.get(0)+deprecationInconsistency.get(0)+duplicationInconsistency.get(0)+structural+temporal>0 )) { //|| (currentRev-revisionTo) !=2
+				   +statusInconsistency.get(0)+deprecationInconsistency.get(0)+duplicationInconsistency.get(0)+structural+temporal) > 0 ) { //|| (currentRev-revisionTo) !=2
 				
 					csvWriter.write(postId,
 									presentationInconsistency.get(0),presentationInconsistency.get(1),presentationInconsistency.get(2),
@@ -218,7 +235,9 @@ public class InconsistencyDetectionMain {
 								    deprecationInconsistency.get(0),deprecationInconsistency.get(1),deprecationInconsistency.get(2),
 								    duplicationInconsistency.get(0),duplicationInconsistency.get(1),duplicationInconsistency.get(2),
 									structural,
-									temporal);
+									temporal,
+									rollbackUserId,
+									rollbackDateTime);
 					
 					} 
 				
@@ -245,8 +264,6 @@ public class InconsistencyDetectionMain {
 	}
 	private static CellProcessor[] getProcessors() {
 		final CellProcessor[] processor = new CellProcessor[] {
-			new Optional(),
-			new Optional(),
 			new Optional(),
 			new Optional(),
 			new Optional(),
