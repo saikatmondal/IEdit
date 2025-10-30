@@ -36,6 +36,7 @@ The userscripts can be found in the **`Tampermonkey Userscripts`** directory.
    git clone https://github.com/saikatmondal/IEdit.git
 
 4. **Run the Local Server**
+   
 Launch the local Java server by running:
 
 src/org/srlab/usask/iedit/inconsistencydetector/IEditPluginMain.java
@@ -45,6 +46,8 @@ src/org/srlab/usask/iedit/inconsistencydetector/IEditPluginMain.java
 Click the **iEdit** button to open the editing interface of Stack Overflow posts.
 
 After editing, click the **CheckIn** button.
+
 The detected inconsistencies and their rejection probabilities will appear in a text box just below the post.
+
 
 
