@@ -1,0 +1,115 @@
+// ==UserScript==
+// @name         CheckIn Local
+// @namespace    http://tampermonkey.net/
+// @version      0.3
+// @description  Send edit info to local validator and show inline suggestions
+// @author       Saikat Mondal
+// @match        https://stackoverflow.com/posts/*/edit
+// @icon         https://cdn.freebiesupply.com/logos/large/2x/university-of-saskatchewan-1-logo-png-transparent.png
+// @grant        GM_xmlhttpRequest
+// @run-at       document-end
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    let processing = false;
+    let debug = true;
+
+    function getEditorEl() {
+        return document.querySelector('textarea#wmd-input, textarea.wmd-input');
+    }
+    function getBeforeEditText() {
+        return window.__SO_BEFORE_EDIT__ || "";
+    }
+    function getAfterEditText() {
+        const el = getEditorEl();
+        return el ? el.value : "";
+    }
+    function getReputation() {
+        const repEl = document.querySelector('.my-profile div.-rep');
+        return repEl ? repEl.textContent.trim() : "";
+    }
+    function getUsername() {
+        const grav = document.querySelector('.gravatar-wrapper-24');
+        return grav ? grav.getAttribute('title') : "";
+    }
+
+    function injectResultBox(message, isError = false) {
+        let box = document.getElementById('checkin-result-box');
+        if (!box) {
+            box = document.createElement('div');
+            box.id = 'checkin-result-box';
+            box.style.border = '2px solid ' + (isError ? '#c00' : '#2a7');
+            box.style.borderRadius = '6px';
+            box.style.padding = '8px 12px';
+            box.style.marginTop = '12px';
+            box.style.fontSize = '13px';
+            box.style.lineHeight = '1.4';
+            box.style.background = isError ? '#ffecec' : '#f0fff4';
+            box.style.color = '#000';
+            const editor = getEditorEl();
+            if (editor && editor.parentElement) editor.parentElement.appendChild(box);
+            else document.body.appendChild(box);
+        }
+        box.style.borderColor = isError ? '#c00' : '#2a7';
+        box.style.background = isError ? '#ffecec' : '#f0fff4';
+        // Preserve server-side newlines
+        box.innerHTML = String(message).replaceAll('\n', '<br>');
+    }
+
+    function sendToLocalService(payload) {
+        GM_xmlhttpRequest({
+            method: "POST",
+            url: "http://localhost:8085/analyze",
+            headers: { "Content-Type": "application/json" },
+            data: JSON.stringify(payload),
+            onload: function(res) {
+                try {
+                    if (debug) console.log("Local service raw response", res.responseText);
+                    // Server returns a JSON string -> parse to get plain message
+                    const message = JSON.parse(res.responseText);
+                    injectResultBox(message, false);
+                } catch (e) {
+                    injectResultBox("Error parsing response from local validator.", true);
+                }
+                processing = false;
+            },
+            onerror: function(err) {
+                if (debug) console.error("Local service error", err);
+                injectResultBox("Could not reach local validator at http://localhost:8085/analyze", true);
+                processing = false;
+            }
+        });
+    }
+
+    const initEditor = getEditorEl();
+    window.__SO_BEFORE_EDIT__ = initEditor ? initEditor.value : "";
+
+    const submitBtn = document.getElementById('submit-button');
+    if (submitBtn && submitBtn.parentElement) {
+        const container = submitBtn.parentElement;
+        const checkBtn = document.createElement('button');
+        checkBtn.className = "flex--item s-btn s-btn__outlined";
+        checkBtn.type = "button";
+        checkBtn.id = "check-edit-text";
+        checkBtn.textContent = "CheckIn";
+        container.appendChild(checkBtn);
+
+        checkBtn.addEventListener('click', () => {
+            if (processing) return;
+            processing = true;
+
+            const data = {
+                preText: getBeforeEditText(),
+                postText: getAfterEditText(),
+                reputation: getReputation(),
+                rollbackUserName: getUsername()
+            };
+
+            if (debug) console.log("Sending payload:", data);
+            injectResultBox("Analyzing...", false);
+            sendToLocalService(data);
+        });
+    }
+})();

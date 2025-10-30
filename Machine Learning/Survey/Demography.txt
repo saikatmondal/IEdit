@@ -1,0 +1,45 @@
+By Profession
+
+Software Developer: 15
+
+Student: 14
+
+Faculty member: 7
+
+Research Engineer: 2
+
+Technical Lead: 2
+
+Quality Assurance Engineer: 1
+
+Software Engineer (SQA): 1
+
+IT Specialist: 1
+
+Digital Marketer: 1
+
+The majority were software professionals (developers, engineers, QA, IT specialists, leads) and students, with some faculty members also represented.
+
+By Experience
+
+0–2 years: 25
+
+3–5 years: 13
+
+6–8 years: 4
+
+15 or more years: 2
+
+Most participants were early-career (0–5 years), but there was a smaller representation of mid- to senior-level professionals.
+
+By Number of Suggested Edits on Stack Overflow
+
+1–10 edits: 34
+
+11–20 edits: 3
+
+21–30 edits: 3
+
+41–50 edits: 2
+
+50+ edits: 2
