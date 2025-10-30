@@ -1,0 +1,65 @@
+// ==UserScript==
+// @name         iEdit
+// @namespace    http://tampermonkey.net/
+// @version      0.6
+// @description  Professional iEdit button with stylish 'i' accent for Stack Overflow pages
+// @author       Saikat Mondal
+// @match        https://stackoverflow.com/questions/*/*
+// @icon         https://cdn.freebiesupply.com/logos/large/2x/university-of-saskatchewan-1-logo-png-transparent.png
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    function replaceWithStylishI(buttons) {
+        for (let btn of buttons) {
+            btn.innerHTML = `
+                <span style="
+                    display: inline-block;
+                    padding: 2px 8px;
+                    background-color: #F48024;
+                    color: #fff;
+                    font-size: 12px;
+                    font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+                    font-weight: 600;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    letter-spacing: 0.3px;
+                    transition: all 0.2s ease;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+                ">
+                    <span style="
+                        font-style: italic;
+                        font-size: 14px;
+                        margin-right: 1px;
+                        color: #fff;
+                    ">i</span>Edit
+                </span>
+            `;
+
+            // Subtle hover animation
+            btn.onmouseenter = () => {
+                btn.firstElementChild.style.backgroundColor = '#E36C15';
+                btn.firstElementChild.style.transform = 'scale(1.05)';
+            };
+            btn.onmouseleave = () => {
+                btn.firstElementChild.style.backgroundColor = '#F48024';
+                btn.firstElementChild.style.transform = 'scale(1.0)';
+            };
+        }
+    }
+
+    window.addEventListener('load', () => {
+        const classes = [
+            'js-suggest-edit-post js-gps-track',
+            'js-edit-post js-gps-track',
+            's-btn s-btn__link js-error-click js-gps-track'
+        ];
+
+        for (const cls of classes) {
+            const buttons = document.getElementsByClassName(cls);
+            replaceWithStylishI(buttons);
+        }
+    });
+})();
