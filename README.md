@@ -16,3 +16,35 @@
 
 - **Survey Data**  
   Survey data with user demographics can be found in the **`Survey`** directory.
+
+## 🧩 iEdit Browser Plugin Integration
+
+The userscripts can be found in the **`Tampermonkey Userscripts`** directory.
+
+### 🧭 Setup Instructions
+
+1. **Install Tampermonkey Extension**  
+   Add the **Tampermonkey** extension to your web browser.
+
+2. **Add the Userscripts**  
+   Open the Tampermonkey dashboard and add the following scripts:  
+   - **`iEdit.txt`** — for the **iEdit** button  
+   - **`CheckIn.txt`** — for the **CheckIn** button  
+
+3. **Clone the Repository**  
+   ```bash
+   git clone https://github.com/saikatmondal/IEdit.git
+
+4. **Run the Local Server**
+Launch the local Java server by running:
+
+src/org/srlab/usask/iedit/inconsistencydetector/IEditPluginMain.java
+
+### Using the Plugin
+
+Click the **iEdit** button to open the editing interface of Stack Overflow posts.
+
+After editing, click the **CheckIn** button.
+The detected inconsistencies and their rejection probabilities will appear in a text box just below the post.
+
+
